@@ -119,6 +119,15 @@ h1 {
   font-size: 1.08rem;
 }
 
+.current-video > div {
+  min-width: 0;
+}
+
+.current-video h2,
+.video-title {
+  overflow-wrap: anywhere;
+}
+
 .video-count,
 .youtube-link,
 button,
@@ -344,6 +353,10 @@ button {
   object-fit: cover;
   border-radius: 6px;
   background: #05070a;
+}
+
+.video-copy {
+  min-width: 0;
 }
 
 .video-title {

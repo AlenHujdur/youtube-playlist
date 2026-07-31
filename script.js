@@ -1,5 +1,6 @@
 const STORAGE_KEY = "youtube-playlist-links";
 const LANGUAGE_STORAGE_KEY = "youtube-playlist-language";
+const TITLE_STORAGE_KEY = "youtube-playlist-video-titles";
 const DEFAULT_LANGUAGE = "bs";
 const RESET_PASSWORD = "brisi";
 
@@ -20,6 +21,7 @@ const translations = {
     noVideos: "Nema videa",
     openYoutube: "Otvori na YouTube",
     pageTitle: "YouTube Playlist",
+    pendingTitle: "Ucitavanje naziva...",
     playVideo: "Pusti video",
     playVideoAria: "Pusti YouTube video",
     playlistReset: "Playlist je vracen na pocetne linkove.",
@@ -50,6 +52,7 @@ const translations = {
     noVideos: "Geen video's",
     openYoutube: "Openen op YouTube",
     pageTitle: "YouTube Afspeellijst",
+    pendingTitle: "Titel laden...",
     playVideo: "Video afspelen",
     playVideoAria: "YouTube-video afspelen",
     playlistReset: "De afspeellijst is teruggezet naar de standaardlinks.",
@@ -73,6 +76,10 @@ const defaultVideos = [
   "https://youtu.be/lEJvhMZ778g?si=mpTSzcUO3VYefu9B",
   "https://youtu.be/zGYiYZw2f78?si=wnQDHSZtkGFTnARC",
 ];
+
+let titleCache = loadTitleCache();
+const pendingTitleRequests = new Set();
+const failedTitleRequests = new Set();
 
 const elements = {
   addForm: document.querySelector("#addForm"),
@@ -99,6 +106,7 @@ let currentMessageKey = "";
 let currentResetMessageKey = "";
 
 render();
+requestMissingVideoTitles();
 
 elements.languageSelect.addEventListener("change", () => {
   currentLanguage = getSupportedLanguage(elements.languageSelect.value);
@@ -131,6 +139,7 @@ elements.addForm.addEventListener("submit", (event) => {
   elements.youtubeUrl.value = "";
   showMessage("videoAdded");
   render();
+  requestMissingVideoTitles();
 });
 
 elements.resetButton.addEventListener("click", () => {
@@ -163,6 +172,7 @@ elements.resetForm.addEventListener("submit", (event) => {
   hideResetForm();
   showMessage("playlistReset");
   render();
+  requestMissingVideoTitles();
 });
 
 function loadLanguage() {
@@ -175,6 +185,19 @@ function getSupportedLanguage(language) {
 
 function t(key) {
   return translations[currentLanguage][key] || translations[DEFAULT_LANGUAGE][key] || key;
+}
+
+function loadTitleCache() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TITLE_STORAGE_KEY) || "{}");
+    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveTitleCache() {
+  localStorage.setItem(TITLE_STORAGE_KEY, JSON.stringify(titleCache));
 }
 
 function loadVideos() {
@@ -242,6 +265,7 @@ function parseYoutubeUrl(value) {
 
     return {
       id,
+      title: titleCache[id] || "",
       url: `https://www.youtube.com/watch?v=${id}`,
       embedUrl: `https://www.youtube.com/embed/${id}`,
       thumbnail: `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
@@ -297,9 +321,11 @@ function render() {
     thumbnail.loading = "lazy";
 
     const textWrap = document.createElement("span");
+    textWrap.className = "video-copy";
     const title = document.createElement("span");
     title.className = "video-title";
-    title.textContent = `${t("videoLabel")} ${index + 1}`;
+    title.textContent = getDisplayTitle(video);
+    title.title = getDisplayTitle(video);
 
     const url = document.createElement("span");
     url.className = "video-url";
@@ -328,6 +354,48 @@ function showMessage(messageKey) {
   elements.formMessage.textContent = t(messageKey);
 }
 
+function requestMissingVideoTitles() {
+  videos.forEach((video) => {
+    if (video.title || pendingTitleRequests.has(video.id) || failedTitleRequests.has(video.id)) {
+      return;
+    }
+
+    pendingTitleRequests.add(video.id);
+    fetchVideoTitle(video)
+      .then((title) => {
+        if (!title) {
+          failedTitleRequests.add(video.id);
+          return;
+        }
+
+        titleCache = { ...titleCache, [video.id]: title };
+        saveTitleCache();
+        videos = videos.map((item) => (item.id === video.id ? { ...item, title } : item));
+        render();
+      })
+      .catch(() => {
+        failedTitleRequests.add(video.id);
+        render();
+      })
+      .finally(() => {
+        pendingTitleRequests.delete(video.id);
+      });
+  });
+}
+
+async function fetchVideoTitle(video) {
+  const response = await fetch(
+    `https://www.youtube.com/oembed?url=${encodeURIComponent(video.url)}&format=json`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`YouTube title request failed with ${response.status}`);
+  }
+
+  const data = await response.json();
+  return typeof data.title === "string" ? data.title.trim() : "";
+}
+
 function showResetForm() {
   elements.resetForm.hidden = false;
   elements.resetButton.setAttribute("aria-expanded", "true");
@@ -349,8 +417,11 @@ function showResetMessage(messageKey) {
 }
 
 function getDisplayTitle(video) {
-  const index = videos.findIndex((item) => item.id === video.id);
-  return index >= 0 ? `${t("videoLabel")} ${index + 1}` : t("videoFallback");
+  if (video.title) {
+    return video.title;
+  }
+
+  return failedTitleRequests.has(video.id) ? t("videoFallback") : t("pendingTitle");
 }
 
 function renderLanguage() {
