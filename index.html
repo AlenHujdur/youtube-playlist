@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="bs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f5f0" />
+    <title>YouTube Playlist</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="watch-area" aria-labelledby="page-title">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">Video kolekcija</p>
+            <h1 id="page-title">YouTube Playlist</h1>
+          </div>
+          <span class="video-count" id="videoCount">0 videa</span>
+        </div>
+
+        <div class="player-wrap">
+          <iframe
+            id="videoFrame"
+            title="YouTube video player"
+            width="560"
+            height="315"
+            src=""
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+
+        <div class="current-video">
+          <div>
+            <p class="current-label">Trenutno se prikazuje</p>
+            <h2 id="currentTitle">Odaberi video</h2>
+          </div>
+          <a id="openYoutube" class="youtube-link" href="#" target="_blank" rel="noopener">Otvori na YouTube</a>
+        </div>
+      </section>
+
+      <aside class="playlist-panel" aria-label="Lista videa">
+        <form class="add-form" id="addForm">
+          <label for="youtubeUrl">Dodaj YouTube link</label>
+          <div class="input-row">
+            <input
+              id="youtubeUrl"
+              name="youtubeUrl"
+              type="text"
+              inputmode="url"
+              autocomplete="off"
+              placeholder="https://youtu.be/..."
+              required
+            />
+            <button type="submit">Dodaj</button>
+          </div>
+          <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="playlist-header">
+          <h2>Playlist</h2>
+          <button class="ghost-button" id="resetButton" type="button">Reset</button>
+        </div>
+
+        <div class="video-list" id="videoList"></div>
+      </aside>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
