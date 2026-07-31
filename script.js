@@ -1,12 +1,15 @@
 const STORAGE_KEY = "youtube-playlist-links";
 const LANGUAGE_STORAGE_KEY = "youtube-playlist-language";
 const DEFAULT_LANGUAGE = "bs";
+const RESET_PASSWORD = "brisi";
 
 const translations = {
   bs: {
     addButton: "Dodaj",
     addLinkLabel: "Dodaj YouTube link",
     ariaPlaylist: "Lista videa",
+    cancelResetButton: "Odustani",
+    confirmResetButton: "Potvrdi",
     currentLabel: "Trenutno se prikazuje",
     duplicateVideo: "Video je vec u playlisti.",
     emptyPlaylist: "Playlist je prazna.",
@@ -22,6 +25,11 @@ const translations = {
     playlistReset: "Playlist je vracen na pocetne linkove.",
     playlistTitle: "Playlist",
     resetButton: "Reset",
+    resetPasswordHint: "Unesi password da vratis originalnih 5 videa.",
+    resetPasswordInvalid: "Pogresan password. Reset nije uradjen.",
+    resetPasswordLabel: "Password za reset",
+    resetPasswordPlaceholder: "Unesi password",
+    resetPasswordRequired: "Prvo unesi password.",
     videoAdded: "Video je dodan.",
     videoFallback: "YouTube video",
     videoLabel: "Video",
@@ -30,6 +38,8 @@ const translations = {
     addButton: "Toevoegen",
     addLinkLabel: "YouTube-link toevoegen",
     ariaPlaylist: "Videolijst",
+    cancelResetButton: "Annuleren",
+    confirmResetButton: "Bevestigen",
     currentLabel: "Wordt nu afgespeeld",
     duplicateVideo: "Video staat al in de afspeellijst.",
     emptyPlaylist: "De afspeellijst is leeg.",
@@ -45,6 +55,11 @@ const translations = {
     playlistReset: "De afspeellijst is teruggezet naar de standaardlinks.",
     playlistTitle: "Afspeellijst",
     resetButton: "Reset",
+    resetPasswordHint: "Voer het wachtwoord in om de originele 5 video's terug te zetten.",
+    resetPasswordInvalid: "Verkeerd wachtwoord. Reset niet uitgevoerd.",
+    resetPasswordLabel: "Reset-wachtwoord",
+    resetPasswordPlaceholder: "Voer wachtwoord in",
+    resetPasswordRequired: "Voer eerst het wachtwoord in.",
     videoAdded: "Video toegevoegd.",
     videoFallback: "YouTube-video",
     videoLabel: "Video",
@@ -61,12 +76,16 @@ const defaultVideos = [
 
 const elements = {
   addForm: document.querySelector("#addForm"),
+  cancelResetButton: document.querySelector("#cancelResetButton"),
   currentTitle: document.querySelector("#currentTitle"),
   formMessage: document.querySelector("#formMessage"),
   languageSelect: document.querySelector("#languageSelect"),
   openYoutube: document.querySelector("#openYoutube"),
   playlistPanel: document.querySelector(".playlist-panel"),
   resetButton: document.querySelector("#resetButton"),
+  resetForm: document.querySelector("#resetForm"),
+  resetMessage: document.querySelector("#resetMessage"),
+  resetPassword: document.querySelector("#resetPassword"),
   videoCount: document.querySelector("#videoCount"),
   videoFrame: document.querySelector("#videoFrame"),
   videoList: document.querySelector("#videoList"),
@@ -77,6 +96,7 @@ let videos = loadVideos();
 let activeVideoId = videos[0]?.id ?? "";
 let currentLanguage = loadLanguage();
 let currentMessageKey = "";
+let currentResetMessageKey = "";
 
 render();
 
@@ -114,9 +134,33 @@ elements.addForm.addEventListener("submit", (event) => {
 });
 
 elements.resetButton.addEventListener("click", () => {
+  showResetForm();
+});
+
+elements.cancelResetButton.addEventListener("click", () => {
+  hideResetForm();
+});
+
+elements.resetForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const password = elements.resetPassword.value.trim();
+
+  if (!password) {
+    showResetMessage("resetPasswordRequired");
+    return;
+  }
+
+  if (password !== RESET_PASSWORD) {
+    showResetMessage("resetPasswordInvalid");
+    elements.resetPassword.select();
+    return;
+  }
+
   videos = defaultVideos.map((url) => parseYoutubeUrl(url)).filter(Boolean);
   activeVideoId = videos[0]?.id ?? "";
   saveVideos();
+  hideResetForm();
   showMessage("playlistReset");
   render();
 });
@@ -284,6 +328,26 @@ function showMessage(messageKey) {
   elements.formMessage.textContent = t(messageKey);
 }
 
+function showResetForm() {
+  elements.resetForm.hidden = false;
+  elements.resetButton.setAttribute("aria-expanded", "true");
+  elements.resetPassword.value = "";
+  showResetMessage("");
+  elements.resetPassword.focus();
+}
+
+function hideResetForm() {
+  elements.resetForm.hidden = true;
+  elements.resetButton.setAttribute("aria-expanded", "false");
+  elements.resetPassword.value = "";
+  showResetMessage("");
+}
+
+function showResetMessage(messageKey) {
+  currentResetMessageKey = messageKey;
+  elements.resetMessage.textContent = messageKey ? t(messageKey) : "";
+}
+
 function getDisplayTitle(video) {
   const index = videos.findIndex((item) => item.id === video.id);
   return index >= 0 ? `${t("videoLabel")} ${index + 1}` : t("videoFallback");
@@ -305,6 +369,10 @@ function renderLanguage() {
 
   if (currentMessageKey) {
     elements.formMessage.textContent = t(currentMessageKey);
+  }
+
+  if (currentResetMessageKey) {
+    elements.resetMessage.textContent = t(currentResetMessageKey);
   }
 }
 

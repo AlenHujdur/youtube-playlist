@@ -71,8 +71,36 @@
 
         <div class="playlist-header">
           <h2 data-i18n="playlistTitle">Playlist</h2>
-          <button class="ghost-button" id="resetButton" type="button" data-i18n="resetButton">Reset</button>
+          <button
+            class="ghost-button"
+            id="resetButton"
+            type="button"
+            aria-controls="resetForm"
+            aria-expanded="false"
+            data-i18n="resetButton"
+          >
+            Reset
+          </button>
         </div>
+
+        <form class="reset-form" id="resetForm" hidden>
+          <label for="resetPassword" data-i18n="resetPasswordLabel">Password za reset</label>
+          <div class="input-row">
+            <input
+              id="resetPassword"
+              name="resetPassword"
+              type="password"
+              autocomplete="off"
+              data-i18n-placeholder="resetPasswordPlaceholder"
+            />
+            <button type="submit" data-i18n="confirmResetButton">Potvrdi</button>
+          </div>
+          <div class="reset-actions">
+            <button class="ghost-button" id="cancelResetButton" type="button" data-i18n="cancelResetButton">Odustani</button>
+          </div>
+          <p class="reset-hint" data-i18n="resetPasswordHint">Unesi password da vratis originalnih 5 videa.</p>
+          <p class="reset-message" id="resetMessage" role="status" aria-live="polite"></p>
+        </form>
 
         <div class="video-list" id="videoList"></div>
       </aside>

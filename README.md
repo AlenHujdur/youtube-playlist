@@ -17,3 +17,7 @@ Pocetni linkovi su u `defaultVideos` listi u fajlu `script.js`. Linkovi dodani k
 ## Jezici
 
 Defaultni jezik je bosanski. Dostupan je i holandski kroz izbor jezika na stranici. Novi tekstovi i prevodi dodaju se u `translations` objektu u fajlu `script.js`.
+
+## Reset playliste
+
+Klik na `Reset` trazi password. Trenutni password je `brisi` i definisan je u `RESET_PASSWORD` konstanti u fajlu `script.js`. Posto je stranica staticka, ovo je samo jednostavna client-side zastita.
