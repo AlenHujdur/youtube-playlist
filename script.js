@@ -77,6 +77,7 @@ const defaultVideos = [
   "https://youtu.be/zGYiYZw2f78?si=wnQDHSZtkGFTnARC",
   "https://youtu.be/dhhjQK0h_Lc",
   "https://youtu.be/SctDV9IHIiM",
+  "https://youtu.be/xty9QrNRGyk",
 ];
 
 let titleCache = loadTitleCache();
