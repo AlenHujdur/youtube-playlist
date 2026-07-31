@@ -80,6 +80,16 @@ const defaultVideos = [
   "https://youtu.be/xty9QrNRGyk",
   "https://www.youtube.com/watch?v=VDrLHqVAciQ",
   "https://www.youtube.com/watch?v=L8wBQNwfAGM",
+  "https://youtu.be/bnJ9yk2Ipu8",
+  "https://youtu.be/8QHS9vCCpeY",
+  "https://youtu.be/ptGi1JMGroI",
+  "https://youtu.be/JkUHZa1eIN8",
+  "https://youtu.be/eAQRwvLuSx0",
+  "https://youtu.be/CfYxiwDRhQw",
+  "https://youtu.be/-EdjUgK8PvE",
+  "https://youtu.be/NRhomd8u0h0",
+  "https://youtu.be/bqR0FUA9zOo",
+  "https://youtu.be/xchTPi_zw9Y",
 ];
 
 let titleCache = loadTitleCache();
