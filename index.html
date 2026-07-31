@@ -13,10 +13,19 @@
       <section class="watch-area" aria-labelledby="page-title">
         <div class="title-row">
           <div>
-            <p class="eyebrow">Video kolekcija</p>
-            <h1 id="page-title">YouTube Playlist</h1>
+            <p class="eyebrow" data-i18n="eyebrow">Video kolekcija</p>
+            <h1 id="page-title" data-i18n="pageTitle">YouTube Playlist</h1>
           </div>
-          <span class="video-count" id="videoCount">0 videa</span>
+          <div class="top-controls">
+            <label class="language-switch" for="languageSelect">
+              <span data-i18n="languageLabel">Jezik</span>
+              <select id="languageSelect" name="languageSelect">
+                <option value="bs">Bosanski</option>
+                <option value="nl">Nederlands</option>
+              </select>
+            </label>
+            <span class="video-count" id="videoCount">0 videa</span>
+          </div>
         </div>
 
         <div class="player-wrap">
@@ -34,16 +43,16 @@
 
         <div class="current-video">
           <div>
-            <p class="current-label">Trenutno se prikazuje</p>
+            <p class="current-label" data-i18n="currentLabel">Trenutno se prikazuje</p>
             <h2 id="currentTitle">Odaberi video</h2>
           </div>
-          <a id="openYoutube" class="youtube-link" href="#" target="_blank" rel="noopener">Otvori na YouTube</a>
+          <a id="openYoutube" class="youtube-link" href="#" target="_blank" rel="noopener" data-i18n="openYoutube">Otvori na YouTube</a>
         </div>
       </section>
 
       <aside class="playlist-panel" aria-label="Lista videa">
         <form class="add-form" id="addForm">
-          <label for="youtubeUrl">Dodaj YouTube link</label>
+          <label for="youtubeUrl" data-i18n="addLinkLabel">Dodaj YouTube link</label>
           <div class="input-row">
             <input
               id="youtubeUrl"
@@ -52,16 +61,17 @@
               inputmode="url"
               autocomplete="off"
               placeholder="https://youtu.be/..."
+              data-i18n-placeholder="linkPlaceholder"
               required
             />
-            <button type="submit">Dodaj</button>
+            <button type="submit" data-i18n="addButton">Dodaj</button>
           </div>
           <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
         </form>
 
         <div class="playlist-header">
-          <h2>Playlist</h2>
-          <button class="ghost-button" id="resetButton" type="button">Reset</button>
+          <h2 data-i18n="playlistTitle">Playlist</h2>
+          <button class="ghost-button" id="resetButton" type="button" data-i18n="resetButton">Reset</button>
         </div>
 
         <div class="video-list" id="videoList"></div>

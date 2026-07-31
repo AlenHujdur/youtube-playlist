@@ -1,4 +1,55 @@
 const STORAGE_KEY = "youtube-playlist-links";
+const LANGUAGE_STORAGE_KEY = "youtube-playlist-language";
+const DEFAULT_LANGUAGE = "bs";
+
+const translations = {
+  bs: {
+    addButton: "Dodaj",
+    addLinkLabel: "Dodaj YouTube link",
+    ariaPlaylist: "Lista videa",
+    currentLabel: "Trenutno se prikazuje",
+    duplicateVideo: "Video je vec u playlisti.",
+    emptyPlaylist: "Playlist je prazna.",
+    eyebrow: "Video kolekcija",
+    invalidUrl: "Unesi ispravan YouTube link.",
+    languageLabel: "Jezik",
+    linkPlaceholder: "https://youtu.be/...",
+    noVideos: "Nema videa",
+    openYoutube: "Otvori na YouTube",
+    pageTitle: "YouTube Playlist",
+    playVideo: "Pusti video",
+    playVideoAria: "Pusti YouTube video",
+    playlistReset: "Playlist je vracen na pocetne linkove.",
+    playlistTitle: "Playlist",
+    resetButton: "Reset",
+    videoAdded: "Video je dodan.",
+    videoFallback: "YouTube video",
+    videoLabel: "Video",
+  },
+  nl: {
+    addButton: "Toevoegen",
+    addLinkLabel: "YouTube-link toevoegen",
+    ariaPlaylist: "Videolijst",
+    currentLabel: "Wordt nu afgespeeld",
+    duplicateVideo: "Video staat al in de afspeellijst.",
+    emptyPlaylist: "De afspeellijst is leeg.",
+    eyebrow: "Videocollectie",
+    invalidUrl: "Voer een geldige YouTube-link in.",
+    languageLabel: "Taal",
+    linkPlaceholder: "https://youtu.be/...",
+    noVideos: "Geen video's",
+    openYoutube: "Openen op YouTube",
+    pageTitle: "YouTube Afspeellijst",
+    playVideo: "Video afspelen",
+    playVideoAria: "YouTube-video afspelen",
+    playlistReset: "De afspeellijst is teruggezet naar de standaardlinks.",
+    playlistTitle: "Afspeellijst",
+    resetButton: "Reset",
+    videoAdded: "Video toegevoegd.",
+    videoFallback: "YouTube-video",
+    videoLabel: "Video",
+  },
+};
 
 const defaultVideos = [
   "https://youtu.be/Oz7LAHdFVYg?si=M36TAX4Egdlkmt-x",
@@ -12,7 +63,9 @@ const elements = {
   addForm: document.querySelector("#addForm"),
   currentTitle: document.querySelector("#currentTitle"),
   formMessage: document.querySelector("#formMessage"),
+  languageSelect: document.querySelector("#languageSelect"),
   openYoutube: document.querySelector("#openYoutube"),
+  playlistPanel: document.querySelector(".playlist-panel"),
   resetButton: document.querySelector("#resetButton"),
   videoCount: document.querySelector("#videoCount"),
   videoFrame: document.querySelector("#videoFrame"),
@@ -22,8 +75,16 @@ const elements = {
 
 let videos = loadVideos();
 let activeVideoId = videos[0]?.id ?? "";
+let currentLanguage = loadLanguage();
+let currentMessageKey = "";
 
 render();
+
+elements.languageSelect.addEventListener("change", () => {
+  currentLanguage = getSupportedLanguage(elements.languageSelect.value);
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
+  render();
+});
 
 elements.addForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -32,14 +93,14 @@ elements.addForm.addEventListener("submit", (event) => {
   const parsed = parseYoutubeUrl(rawUrl);
 
   if (!parsed) {
-    showMessage("Unesi ispravan YouTube link.");
+    showMessage("invalidUrl");
     return;
   }
 
   if (videos.some((video) => video.id === parsed.id)) {
     activeVideoId = parsed.id;
     elements.youtubeUrl.value = "";
-    showMessage("Video je vec u playlisti.");
+    showMessage("duplicateVideo");
     render();
     return;
   }
@@ -48,7 +109,7 @@ elements.addForm.addEventListener("submit", (event) => {
   activeVideoId = parsed.id;
   saveVideos();
   elements.youtubeUrl.value = "";
-  showMessage("Video je dodan.");
+  showMessage("videoAdded");
   render();
 });
 
@@ -56,9 +117,21 @@ elements.resetButton.addEventListener("click", () => {
   videos = defaultVideos.map((url) => parseYoutubeUrl(url)).filter(Boolean);
   activeVideoId = videos[0]?.id ?? "";
   saveVideos();
-  showMessage("Playlist je vracen na pocetne linkove.");
+  showMessage("playlistReset");
   render();
 });
+
+function loadLanguage() {
+  return getSupportedLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY) || DEFAULT_LANGUAGE);
+}
+
+function getSupportedLanguage(language) {
+  return Object.prototype.hasOwnProperty.call(translations, language) ? language : DEFAULT_LANGUAGE;
+}
+
+function t(key) {
+  return translations[currentLanguage][key] || translations[DEFAULT_LANGUAGE][key] || key;
+}
 
 function loadVideos() {
   try {
@@ -135,14 +208,20 @@ function parseYoutubeUrl(value) {
 }
 
 function render() {
+  renderLanguage();
   elements.videoCount.textContent = countLabel(videos.length);
 
   if (!videos.length) {
     elements.videoFrame.src = "";
-    elements.currentTitle.textContent = "Nema videa";
+    elements.videoFrame.removeAttribute("srcdoc");
+    elements.currentTitle.textContent = t("noVideos");
     elements.openYoutube.href = "#";
     elements.openYoutube.setAttribute("aria-disabled", "true");
-    elements.videoList.innerHTML = '<p class="empty-state">Playlist je prazna.</p>';
+    elements.videoList.innerHTML = "";
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = t("emptyPlaylist");
+    elements.videoList.append(emptyState);
     return;
   }
 
@@ -176,7 +255,7 @@ function render() {
     const textWrap = document.createElement("span");
     const title = document.createElement("span");
     title.className = "video-title";
-    title.textContent = `Video ${index + 1}`;
+    title.textContent = `${t("videoLabel")} ${index + 1}`;
 
     const url = document.createElement("span");
     url.className = "video-url";
@@ -193,20 +272,40 @@ function countLabel(count) {
     return "1 video";
   }
 
-  if (count >= 2 && count <= 4) {
-    return `${count} videa`;
+  if (currentLanguage === "nl") {
+    return `${count} video's`;
   }
 
   return `${count} videa`;
 }
 
-function showMessage(message) {
-  elements.formMessage.textContent = message;
+function showMessage(messageKey) {
+  currentMessageKey = messageKey;
+  elements.formMessage.textContent = t(messageKey);
 }
 
 function getDisplayTitle(video) {
   const index = videos.findIndex((item) => item.id === video.id);
-  return index >= 0 ? `Video ${index + 1}` : "YouTube video";
+  return index >= 0 ? `${t("videoLabel")} ${index + 1}` : t("videoFallback");
+}
+
+function renderLanguage() {
+  document.documentElement.lang = currentLanguage;
+  document.title = t("pageTitle");
+  elements.languageSelect.value = currentLanguage;
+  elements.playlistPanel.setAttribute("aria-label", t("ariaPlaylist"));
+
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.setAttribute("placeholder", t(node.dataset.i18nPlaceholder));
+  });
+
+  if (currentMessageKey) {
+    elements.formMessage.textContent = t(currentMessageKey);
+  }
 }
 
 function buildVideoPreview(video) {
@@ -292,11 +391,11 @@ function buildVideoPreview(video) {
         line-height: 1.2;
       }
     </style>
-    <a href="${playUrl}" aria-label="Pusti YouTube video">
+    <a href="${playUrl}" aria-label="${t("playVideoAria")}">
       <img src="${video.thumbnail}" alt="" />
       <span class="shade"></span>
       <span class="play"></span>
-      <span class="label">Pusti video</span>
+      <span class="label">${t("playVideo")}</span>
     </a>
   `;
 }
